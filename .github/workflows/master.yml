@@ -1,23 +1,69 @@
-name: Build and Deploy
+# This is a basic workflow to help you get started with Actions
+
+name: CI
+
+# Controls when the workflow will run
 on:
+  # Triggers the workflow on push or pull request events but only for the main branch
   push:
-    branches:
-      - master
+    branches: [ master ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  build-and-deploy:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
     runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      - name: Checkout  
-        uses: actions/checkout@v2.3.1
-
-      - name: Install and Build   
-        run: |
-          npm install
-          npm run docs:build
-
-      - name: Deploy  
-        uses: JamesIves/github-pages-deploy-action@4.1.3
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+      - name: Use Node.js
+        uses: actions/setup-node@v1
         with:
-          BRANCH: gh-pages
-          FOLDER: docs/.vuepress/dist
-          ACCESS_TOKEN: ${{ secrets.DEPLOY_KEY }}
+          node-version: "14.x"
+      # 这里是node_modules的缓存,用于加速后续node的构建
+      - name: Cache node modules
+        uses: actions/cache@v1
+        id: cache
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.josc') }}
+          restore-keys:
+            ${{ runner.os }}-node-
+      # - name: Cache dependencies
+      #   uses: actions/cache@v2
+      #   id: yarn-cache
+      #   with:
+      #     path: |
+      #       **/node_modules
+      #     key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+      #     restore-keys: |
+      #       ${{ runner.os }}-yarn-
+      - name: Install Dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: num i
+      - name: Generates Pages
+        run: |
+          npm run docs:build
+      - name: Deploy Github Pages🚀
+        uses: JamesIves/github-pages-deploy-action@v4.2.2
+        with:
+          branch: gh-pages # The branch the action should deploy to.
+          folder: docs/.vuepress/dist # The folder the action should deploy.  
+          ssh-key: ${{ secrets.DEPLOY_KEY }}
+
+
+      # Runs a single command using the runners shell
+      # - name: Run a one-line script
+      #   run: echo Hello, world!
+
+      # Runs a set of commands using the runners shell
+      # - name: Run a multi-line script
+      #   run: |
+      #     echo Add other actions to build,
+      #     echo test, and deploy your project.
