@@ -20,4 +20,4 @@ jobs:
         with:
           BRANCH: gh-pages
           FOLDER: docs/.vuepress/dist
-          ACCESS_TOKEN: ${{ secrets.DEPLOY_KEY }}
+          SSH-KEY: ${{ secrets.DEPLOY_KEY }}
